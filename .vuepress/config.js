@@ -10,14 +10,9 @@ export default defineUserConfig({
   title: book.title,
   description: book.description,
   base: '/gitbook/',
-  head: [
-    [
-      'link', { rel: 'icon', href: '/img/favicon.ico' }
-    ]
-  ],
+  head: [],
   theme: defaultTheme({
     docsBranch: 'main',
-    logo: '/img/favicon.ico',// 注意图片放在 public 文件夹下
     navbar: [
       {
         text: '我的博客',
