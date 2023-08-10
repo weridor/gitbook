@@ -12,12 +12,12 @@ export default defineUserConfig({
   base: '/gitbook/',
   head: [
     [
-      'link', { rel: 'icon', href: '../img/favicon.ico' }
+      'link', { rel: 'icon', href: '/img/favicon.ico' }
     ]
   ],
   theme: defaultTheme({
     docsBranch: 'main',
-    logo: '../img/favicon.ico',// 注意图片放在 public 文件夹下
+    logo: '/img/favicon.ico',// 注意图片放在 public 文件夹下
     navbar: [
       {
         text: '我的博客',
