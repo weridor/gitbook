@@ -1,17 +1,26 @@
 > 首先复习下前置知识
+
 ## 一、可重入锁
+
 ### 概念
+
 **可重入锁（也叫做递归锁**）指的是同一线程外层函数获得锁之后，内层递归函数仍然能获取该锁的代码，**在同一个线程在外层方法获取锁的时候，在进入内层方法会自动获取锁**
+
 ### “可重入锁”这四个字分开来解释
-* 可：可以。
-* 重：再次。
-* 入：进入
-* 锁：同步锁
-* 进入什么 ----- 进入同步域（即同步代码块/方法或显式锁锁定的代码）
-**一个线程中的多个流程可以获取同一把锁，持有这把同步锁可以再次进入。自己可以获取自己的内部锁**
+
+- 可：可以。
+- 重：再次。
+- 入：进入
+- 锁：同步锁
+- 进入什么 ----- 进入同步域（即同步代码块/方法或显式锁锁定的代码）
+  **一个线程中的多个流程可以获取同一把锁，持有这把同步锁可以再次进入。自己可以获取自己的内部锁**
+
 ### 可重入锁种类
-#### 隐式锁（即synchronized关键字使用的锁）默认是可重入锁
+
+#### 隐式锁（即 synchronized 关键字使用的锁）默认是可重入锁
+
 1、用同步块方式实现隐式锁
+
 ```java
 package juc;
 
@@ -49,6 +58,7 @@ public class ReEnterLockDemo {
 
 ![2.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ff2ff899d07f45a6bada939b3f9bfd36~tplv-k3u1fbpfcp-watermark.image?)
 2、用同步方法方式实现隐式锁
+
 ```java
 package juc;
 
@@ -77,12 +87,15 @@ public class StaticReEnterLockDemo {
 ```
 
 ![2.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/cb6e59061e8248cfb6f3c3c3819c75a0~tplv-k3u1fbpfcp-watermark.image?)
-### Synchronized的重入的实现机理
-* 每个锁对象拥有一个锁计数器和一个指向持有该锁的线程的指针。
-* 当执行`monitorenter`时，如果目标锋对象的计数器为零，那么说明它没有被其他线程所持有，Java虚拟机会将该锁对象的持有线程设置为当前线程，并且将其计数器加`i`。
-* 在目标锁对象的计数器不为零的情况下，如果锁对象的持有线程是当前线程，那么`Java`虚拟机可以将其计数器加1，否则需要等待，直至持有线程释放该锁。
-* 当执行`monitorexit`时，`Java`虚拟机则需将锁对象的计数器减1。计数器为零代表锁已被释放。
-用`javap`指令查看以下代码字节码可发现
+
+### Synchronized 的重入的实现机理
+
+- 每个锁对象拥有一个锁计数器和一个指向持有该锁的线程的指针。
+- 当执行`monitorenter`时，如果目标锋对象的计数器为零，那么说明它没有被其他线程所持有，Java 虚拟机会将该锁对象的持有线程设置为当前线程，并且将其计数器加`i`。
+- 在目标锁对象的计数器不为零的情况下，如果锁对象的持有线程是当前线程，那么`Java`虚拟机可以将其计数器加 1，否则需要等待，直至持有线程释放该锁。
+- 当执行`monitorexit`时，`Java`虚拟机则需将锁对象的计数器减 1。计数器为零代表锁已被释放。
+  用`javap`指令查看以下代码字节码可发现
+
 ```java
 static Object objectLockA = new Object();
 public static void m1() {
@@ -97,7 +110,9 @@ public static void m1() {
 **为什么会多出来一个 `monitorexit` 指令呢？**
 
 如果同步代码块中出现`Exception`或者`Error`，则会调用第二个`monitorexit`指令来保证释放锁
-### 显式锁（即Lock）也有ReentrantLock这样的可重入锁。
+
+### 显式锁（即 Lock）也有 ReentrantLock 这样的可重入锁。
+
 ```java
 package juc;
 
@@ -140,19 +155,24 @@ public class LockDemo {
     }
 }
 ```
+
 正常打印
+
 ```
 =======外层
 =======内层
 b thread----外层调用lock
 ```
-当我们把`a`线程线程第二个`unlock`注释起来，就会发现`b`线程将会一直阻塞,线程a加了两次锁，而只释放一次锁，所以线程b就拿不到锁。
+
+当我们把`a`线程线程第二个`unlock`注释起来，就会发现`b`线程将会一直阻塞,线程 a 加了两次锁，而只释放一次锁，所以线程 b 就拿不到锁。
 ![3.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/05ee41279be44eafbb5648354e29f788~tplv-k3u1fbpfcp-watermark.image?)
 
-
 ## 二、LockSupport
+
 ![5.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/10579669c0b24dc9a28421498a745baa~tplv-k3u1fbpfcp-watermark.image?)
-### LockSupport概念
+
+### LockSupport 概念
+
 官方解释
 ![5.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/264f7490285b4ba98a9f391cffc96d9a~tplv-k3u1fbpfcp-watermark.image?)
 **重点**：`LockSupport`是用来**创建锁和其他同步类的基本线程阻塞原语**。
@@ -161,17 +181,20 @@ b thread----外层调用lock
 `LockSupport`中的`park()`和`unpark()`的作用分别是阻塞线程和解除阻塞线程
 
 **看一道面试题**
+
 ### 线程中断
+
 #### 概念
-* 一个线程不应该由其他线程来强制中断或停止,而是应该由线程自己自行停止,所以,`Thread.stop`、`Thread.suspend`、`Thread. resume`都已经被废弃了
 
-* 在`Java`中没有办法立即停止一条线程,然而停止线程却显得尤为重要,如取消一个耗时操作。因此,`Java`提供了一种用于停止线程的机制 — 中断
+- 一个线程不应该由其他线程来强制中断或停止,而是应该由线程自己自行停止,所以,`Thread.stop`、`Thread.suspend`、`Thread. resume`都已经被废弃了
 
-* 中断只是一种协作机制,`Java`没有给**中断增加任何语法,中断的过程完全需要程序员自己实现**
+- 在`Java`中没有办法立即停止一条线程,然而停止线程却显得尤为重要,如取消一个耗时操作。因此,`Java`提供了一种用于停止线程的机制 — 中断
 
-* 若要中断一个线程,你需要手动调用该线程的`interrupt`方法,**该方法也仅仅是将线程对象的中断标识设为`true`**
+- 中断只是一种协作机制,`Java`没有给**中断增加任何语法,中断的过程完全需要程序员自己实现**
 
-* 每个线程对象中都有一个标识,用于标识线程是否被中断;该标识位为`true`表示中断,为`false`表示未中断;通过调用线程对象的`interrupt`方法将线程的标识位设为`true`;**可以在别的线程中调用,也可以在自己的线程中调用**
+- 若要中断一个线程,你需要手动调用该线程的`interrupt`方法,**该方法也仅仅是将线程对象的中断标识设为`true`**
+
+- 每个线程对象中都有一个标识,用于标识线程是否被中断;该标识位为`true`表示中断,为`false`表示未中断;通过调用线程对象的`interrupt`方法将线程的标识位设为`true`;**可以在别的线程中调用,也可以在自己的线程中调用**
 
 ```java
 Class Thread:
@@ -205,10 +228,15 @@ Class Thread:
     // 调用本地方法（仅仅是设置线程的中断状态未true,不会停止线程）
     private native void interrupt0();
 ```
+
 ![6.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/fa34088853e940c3ba8bf6908d96becd~tplv-k3u1fbpfcp-watermark.image?)
-### 3种线程等待唤醒的方法
+
+### 3 种线程等待唤醒的方法
+
 既然提到了线程等待与唤醒，我们就来复习下前面的两种方式。
-#### Object类中的wait和notify方法实现线程等待和唤醒
+
+#### Object 类中的 wait 和 notify 方法实现线程等待和唤醒
+
 ```java
 package locksupport;
 
@@ -268,7 +296,7 @@ public class WaitNotifyDemo {
     private native boolean isInterrupted(boolean ClearInterrupted);
 
 
-   
+
     /**
      *   判断线程是否被中断,并清楚当前中断状态,这个方法做了两件事\
      * (返回当前线程的中断状态 | 将当前线程的中断状态设为false)
@@ -297,14 +325,19 @@ public class WaitNotifyDemo {
 
 ![7.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e48bced9df374b5eae819d9c8b411604~tplv-k3u1fbpfcp-watermark.image?)
 这样执行**先阻塞后唤醒**的话并没有错，下面我们演示**不在 synchronized 关键字中使用 wait() 和 notify() 方法**。
-#### wait方法和notify方法，两个都去掉同步代码块
+
+#### wait 方法和 notify 方法，两个都去掉同步代码块
+
 ```java
-// synchronized (objectLock) 
+// synchronized (objectLock)
 ```
+
 #### 使用中断标识停止线程
--   在需要中断的线程中不断监听中断状态,一旦发生中断,就执行型对于的中断处理业务逻辑
--   三种中断标识停止线程的方式
-**通过Thread类自带的中断API方法实现**
+
+- 在需要中断的线程中不断监听中断状态,一旦发生中断,就执行型对于的中断处理业务逻辑
+- 三种中断标识停止线程的方式
+  **通过 Thread 类自带的中断 API 方法实现**
+
 ```java
 private static void m1() {
     Thread t1 = new Thread(() -> {
@@ -326,7 +359,9 @@ private static void m1() {
     },"t2").start();
 }
 ```
-**通过volatile变量实现**
+
+**通过 volatile 变量实现**
+
 ```java
 public static void m3(){
     new Thread(() -> {
@@ -349,7 +384,9 @@ public static void m3(){
     },"t2").start();
 }
 ```
-**通过AtomicBoolean**
+
+**通过 AtomicBoolean**
+
 ```java
 public static void m2(){
     new Thread(() -> {
@@ -372,8 +409,10 @@ public static void m2(){
     },"t2").start();
 }
 ```
-**中断为true后,并不是立刻stop程序**
+
+**中断为 true 后,并不是立刻 stop 程序**
 看下面案例
+
 ```java
 public static void m4() {
     //中断为true后,并不是立刻stop程序
@@ -407,8 +446,11 @@ public static void m4() {
 ```
 
 ![9.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/19864d8ff9d749c4ac172e4c45ba46e3~tplv-k3u1fbpfcp-watermark.image?)
-#### 将notify放在wait方法前面
-下面我们延迟A进程，让唤醒方法先被执行看会发生什么。
+
+#### 将 notify 放在 wait 方法前面
+
+下面我们延迟 A 进程，让唤醒方法先被执行看会发生什么。
+
 ```java
 public static void main(String[] args) {
     new Thread(() -> {
@@ -436,7 +478,9 @@ public static void main(String[] args) {
 
 ![8.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ee6f09f278bc46cbb15a2031d2dce48e~tplv-k3u1fbpfcp-watermark.image?)
 可以看出会一直阻塞。
-### Condition接口中的await后signal方法实现线程的等待和唤醒
+
+### Condition 接口中的 await 后 signal 方法实现线程的等待和唤醒
+
 ```java
 package locksupport;
 
@@ -487,9 +531,12 @@ public class AwaitSignalDemo {
 ```
 
 ![7.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/88eb9ae2e29a48508eb6d1aec936a88e~tplv-k3u1fbpfcp-watermark.image?)
-A 线程先执行，执行 `condition.await()` 后被阻塞，B 线程在 A 线程之后执行 `condition.signal()` 将 A线程唤醒
+A 线程先执行，执行 `condition.await()` 后被阻塞，B 线程在 A 线程之后执行 `condition.signal()` 将 A 线程唤醒
+
 #### 去掉 lock() 和 unlock() 方法
+
 下面来看注释掉**lock() 和 unlock()**
+
 ```java
 //lock.lock();
 //lock.unlock();
@@ -498,7 +545,9 @@ A 线程先执行，执行 `condition.await()` 后被阻塞，B 线程在 A 线�
 ![10.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5abca4d654754effb2dc0da78f19ca50~tplv-k3u1fbpfcp-watermark.image?)
 
 #### 先 signal() 后 await()
-下面我们延迟A进程，让唤醒方法先被执行看会发生什么。
+
+下面我们延迟 A 进程，让唤醒方法先被执行看会发生什么。
+
 ```java
 public static void main(String[] args) {
     new Thread(() -> {
@@ -521,14 +570,20 @@ public static void main(String[] args) {
 
 ![8.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e341ba7140c44a44a9c53f378dc3e7ec~tplv-k3u1fbpfcp-watermark.image?)
 与`Object`锁情况相似。
-### 传统的synchronized和Lock实现等待唤醒通知的约束
-* 线程先要获得并持有锁，必须在锁块（synchronized或lock）中
-* 必须要先等待后唤醒，线程才能够被唤醒
-### LockSupport类中的park等待和unpark唤醒
-* `LockSupport`是用来创建锁和其他同步类的基本线程阻塞原语。
-* `LockSupport`类使用了一种名为`Permit`(许可）的概念来做到阻塞和唤醒线程的功能，每个线程都有一个许可(`permit`),`permit`只有两个值1和零，默认是零。
-* 可以把许可看成是一种(0,1)信号量(`Semaphore`），但与`Semaphore`不同的是，许可的累加上限是1。
+
+### 传统的 synchronized 和 Lock 实现等待唤醒通知的约束
+
+- 线程先要获得并持有锁，必须在锁块（synchronized 或 lock）中
+- 必须要先等待后唤醒，线程才能够被唤醒
+
+### LockSupport 类中的 park 等待和 unpark 唤醒
+
+- `LockSupport`是用来创建锁和其他同步类的基本线程阻塞原语。
+- `LockSupport`类使用了一种名为`Permit`(许可）的概念来做到阻塞和唤醒线程的功能，每个线程都有一个许可(`permit`),`permit`只有两个值 1 和零，默认是零。
+- 可以把许可看成是一种(0,1)信号量(`Semaphore`），但与`Semaphore`不同的是，许可的累加上限是 1。
+
 #### park
+
 `park()/park(Object blocker)`
 
 `park()` 方法的作用：阻塞当前线程/阻塞传入的具体线程
@@ -543,7 +598,9 @@ public static void park() {
     UNSAFE.park(false, 0L);
 }
 ```
+
 #### unpark
+
 `unpark(Thread thread)`
 
 `unpark()` 方法的作用：唤醒处于阻断状态的指定线程
@@ -551,6 +608,7 @@ public static void park() {
 调用 `unpark(thread)` 方法后，就会将 `thread` 线程的许可 `permit` 设置成 1（注意多次调用 `unpark()`方法，不会累加，`permit` 值还是 1），这会自动唤醒 `thread `线程，即之前阻塞中的`LockSupport.park()`方法会立即返回。
 
 `unpark()`方法通过 `Unsafe` 类实现
+
 ```java
 // Makes available the permit for the given thread
 public static void unpark(Thread thread) {
@@ -558,7 +616,9 @@ public static void unpark(Thread thread) {
         UNSAFE.unpark(thread);
 }
 ```
-#### 下面用LockSupport实现线程的阻塞和唤醒
+
+#### 下面用 LockSupport 实现线程的阻塞和唤醒
+
 ```java
 private static void lockSupportParkUnpark() {
     Thread a = new Thread(() -> {
@@ -574,11 +634,14 @@ private static void lockSupportParkUnpark() {
     }, "B").start();
 }
 ```
+
 **运行结果**：A 线程先执行 `LockSupport.park()` 方法将通行证（`permit`）设置为 0，permit 初始值本来就为 0，然后 B 线程执行 `LockSupport.unpark(a)` 方法将 `permit` 设置为 1，此时 A 线程可以通行
 ![support1.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f7e81951b97f4e7cae4d04794f538b91~tplv-k3u1fbpfcp-watermark.image?)
 
 ##### 先唤醒再阻塞
-延迟 A线程，让B线程的唤醒先执行
+
+延迟 A 线程，让 B 线程的唤醒先执行
+
 ```java
 Thread a = new Thread(() -> {
     // 暂停一会线程
@@ -589,10 +652,14 @@ Thread a = new Thread(() -> {
 }, "A");
 a.start();
 ```
+
 **运行结果**：因为引入了通行证的概念，所以先唤醒（`unpark()`）其实并不会有什么影响，从程序运行结果可以看出，A 线程执行 `LockSupport.park()` 时并没有被阻塞
 ![support2.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d32dca4951dc46e2b25a1825db593a8f~tplv-k3u1fbpfcp-watermark.image?)
+
 ##### 虽然上述情况均不会抛异常，但也有异常情况
+
 例如：**没有考虑到 permit 上限值为 1**
+
 ```java
 private static void lockSupportBlock() {
     Thread a = new Thread(() -> {
@@ -612,72 +679,82 @@ private static void lockSupportBlock() {
     }, "B").start();
 }
 ```
+
 **结果**:虽然执行两次 `LockSupport.unpark(a)`,但`permit` 上限值为 1,后面两次`LockSupport.park()`只有第一次会通过，第二次仍会阻塞。
 
 ![support3.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e366d2789a904a79bf7018284d2a84fb~tplv-k3u1fbpfcp-watermark.image?)
-#### LockSupport重点说明
+
+#### LockSupport 重点说明
+
 **`LockSupport`是用来创建锁和其他同步类的基本线程阻塞原语**
 
-* `LockSupport`是一个线程阻塞工具类，所有的方法都是静态方法，可以让线程在任意位置阻塞，阻塞之后也有对应的唤醒方法。归根结底，`LockSupport`调用的`Unsafe`中的`native`代码。
+- `LockSupport`是一个线程阻塞工具类，所有的方法都是静态方法，可以让线程在任意位置阻塞，阻塞之后也有对应的唤醒方法。归根结底，`LockSupport`调用的`Unsafe`中的`native`代码。
 
 **`LockSupport`提供`park()`和`unpark()`方法实现阻塞线程和解除线程阻塞的过程**
 
-* `LockSupport`和每个使用它的线程都有一个许可(`permit`)关联。`permit`相当于1，0的开关，默认是0，
+- `LockSupport`和每个使用它的线程都有一个许可(`permit`)关联。`permit`相当于 1，0 的开关，默认是 0，
 
-* 调用一次`unpark`就加1变成1，
+- 调用一次`unpark`就加 1 变成 1，
 
-* 调用一次`park`会消费`permit`，也就是将1变成o，同时`park`立即返回。
+- 调用一次`park`会消费`permit`，也就是将 1 变成 o，同时`park`立即返回。
 
-* 如再次调用`park`会变成阻塞(因为`permit`为零了会阻塞在这里，一直到`permit`变为1)，这时调用`unpark`会把`permit`置为1。
+- 如再次调用`park`会变成阻塞(因为`permit`为零了会阻塞在这里，一直到`permit`变为 1)，这时调用`unpark`会把`permit`置为 1。
 
-* 每个线程都有一个相关的`permit`, `permit`最多只有一个，重复调用`unpark`也不会积累凭证。
+- 每个线程都有一个相关的`permit`, `permit`最多只有一个，重复调用`unpark`也不会积累凭证。
 
 **形象的理解**
 
-线程阻塞需要消耗凭证(`permit`)，这个凭证最多只有1个。
+线程阻塞需要消耗凭证(`permit`)，这个凭证最多只有 1 个。
 
-**当调用park方法时**
+**当调用 park 方法时**
 
-* 如果有凭证，则会直接消耗掉这个凭证然后正常退出;
+- 如果有凭证，则会直接消耗掉这个凭证然后正常退出;
 
-* 如果无凭证，就必须阻塞等待凭证可用;
+- 如果无凭证，就必须阻塞等待凭证可用;
 
-* 而`unpark`则相反，它会增加一个凭证，但凭证最多只能有1个，累加无效。
+- 而`unpark`则相反，它会增加一个凭证，但凭证最多只能有 1 个，累加无效。
+
 #### 相关面试题
+
 **为什么可以先唤醒线程后阻塞线程?**
 
-因为unpark获得了一个凭证，之后再调用park方法，就可以名正言顺的凭证消费，故不会阻塞。
-
+因为 unpark 获得了一个凭证，之后再调用 park 方法，就可以名正言顺的凭证消费，故不会阻塞。
 
 **为什么唤醒两次后阻塞两次，但最终结果还会阻塞线程?**
 
-因为凭证的数量最多为1，连续调用两次unpark和调用一次unpark效果一样，只会增加一个凭证;
+因为凭证的数量最多为 1，连续调用两次 unpark 和调用一次 unpark 效果一样，只会增加一个凭证;
 
-而调用两次park却需要消费两个凭证，证不够，不能放行。
+而调用两次 park 却需要消费两个凭证，证不够，不能放行。
+
 ## AbstractQueuedSynchronizer
+
 ### 概念
+
 字面意思为抽象的队列同步器。
 
-一般我们说的 `AQS` 指的是 `java.util.concurrent.locks` 包下的 `AbstractQueuedSynchronizer`，但其实还有另外两种种抽象队列同步器：`AbstractOwnableSynchronizer`、`AbstractQueuedLongSynchronizer` 
+一般我们说的 `AQS` 指的是 `java.util.concurrent.locks` 包下的 `AbstractQueuedSynchronizer`，但其实还有另外两种种抽象队列同步器：`AbstractOwnableSynchronizer`、`AbstractQueuedLongSynchronizer`
 
 ![aqs1.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1e1e00e096434172a8db09ff06ced979~tplv-k3u1fbpfcp-watermark.image?)
+
 ```
 /*
-    A synchronizer that may be exclusively owned by a thread. This class 
-    provides a basis for creating locks and related synchronizers that may 
-    entail a notion of ownership. The AbstractOwnableSynchronizer class itself does not manage or use this information. However, subclasses and 
-    tools may use appropriately maintained values to help control and 
+    A synchronizer that may be exclusively owned by a thread. This class
+    provides a basis for creating locks and related synchronizers that may
+    entail a notion of ownership. The AbstractOwnableSynchronizer class itself does not manage or use this information. However, subclasses and
+    tools may use appropriately maintained values to help control and
     monitor access and provide diagnostics.
 */
 public abstract class AbstractOwnableSynchronizer
-    implements java.io.Serializable 
+    implements java.io.Serializable
 ```
+
 > 该父类本身不管理或使用此信息。但是，子类和工具可以使用适当维护的值来帮助控制和监视访问并提供诊断。
 > **技术翻译**\
-> 是用来构建锁或者其它同步器组件的**重量级基础框架及整个JUC体系的基石**， 通过内置的**FIFO队列来完成资源获取线程的排队工作**，并通过一个int类变量 表示持有锁的状态
+> 是用来构建锁或者其它同步器组件的**重量级基础框架及整个 JUC 体系的基石**， 通过内置的**FIFO 队列来完成资源获取线程的排队工作**，并通过一个 int 类变量 表示持有锁的状态
 
 ![aqs2.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7f7bc9d5f59248f2bbbd4bcf732474a8~tplv-k3u1fbpfcp-watermark.image?)
-### AQS为什么是JUC内容中最重要的基石
+
+### AQS 为什么是 JUC 内容中最重要的基石
 
 ![aqs3.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7cfd8d79aa0546df9e434c2e66706302~tplv-k3u1fbpfcp-watermark.image?)
 
@@ -686,10 +763,14 @@ public abstract class AbstractOwnableSynchronizer
 ![aqs6.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/dbd028bda00a4feb8da0e1898ed9863b~tplv-k3u1fbpfcp-watermark.image?)
 
 ![aqs7.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/de377629b3c8497e9ccb50f861df6f6e~tplv-k3u1fbpfcp-watermark.image?)
+
 ### 进一步理解锁和同步器的关系
-**锁，面向锁的使用者**——定义了程序员和锁交互的使用层API，隐藏了实现细节，你调用即可。
-**同步器，面向锁的实现者**——比如Java并发大神Douglee，提出统一规 范并简化了锁的实现，屏蔽了同步状态管理、阻塞线程排队和通知、唤醒机制等。
-### AQS作用
+
+**锁，面向锁的使用者**——定义了程序员和锁交互的使用层 API，隐藏了实现细节，你调用即可。
+**同步器，面向锁的实现者**——比如 Java 并发大神 Douglee，提出统一规 范并简化了锁的实现，屏蔽了同步状态管理、阻塞线程排队和通知、唤醒机制等。
+
+### AQS 作用
+
 **加锁会导致阻塞**————有阻塞就需要排队，实现排队必然需要有某种形式的队列来进行管理
 
 抢到资源的线程直接使用办理业务，抢占不到资源的线程的必然涉及**一种排队等候机制**，抢占资源失败的线程继续去等待(类似办理窗口都满了，暂时没有受理窗口的顾客只能去候客区排队等候)，仍然保留获取锁的可能且获取锁流程仍在继续(候客区的顾客也在等着叫号，轮到了再去受理窗口办理业务）。
@@ -699,36 +780,46 @@ public abstract class AbstractOwnableSynchronizer
 如果共享资源被占用，就需要一定的**阻塞等待唤醒机制来保证锁分配**。这个机制主要用的是`CLH`队列的变体实现的，将暂时获取不到锁的线程加入到队列中，这个队列就是`AQS`的抽象表现。它将请求共享资源的线程封装成队列的结点`(Node`) ，通过`CAS`、自旋以及`LockSuport.park()`的方式，维护`state`变量的状态，使并发达到同步的效果。
 
 ![aqs2.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5d1debba750f46bbb1ef9fc2027f5fa3~tplv-k3u1fbpfcp-watermark.image?)
-### AQS初识
+
+### AQS 初识
 
 ![aqs8.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/b15b820216df4f488a7224c7b169d520~tplv-k3u1fbpfcp-watermark.image?)
 **有阻塞就需要排队，实现排队必然需要队列**\
 `AQS`使用一个`volatile`的`int`类型的成员变量来表示**同步状态**，通过内置的 `FIFO`队列来完成资源获取的排队工作将每条要去抢占资源的线程封装成 一个`Node`节点来实现锁的分配，通过`CAS`完成对`State`值的修改。
 
 ![aqs9.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d519274707d645d58ee97a3ad96799df~tplv-k3u1fbpfcp-watermark.image?)
-### AQS内部体系架构
-#### AQS自身
+
+### AQS 内部体系架构
+
+#### AQS 自身
+
 ![aqs10.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/02e62f4e28924a1584f54436cf0a4dac~tplv-k3u1fbpfcp-watermark.image?)
-AQS的int变量
-**AQS的同步状态State成员变量**
+AQS 的 int 变量
+**AQS 的同步状态 State 成员变量**
+
 ```java
 /**
 * The synchronization state.
 */
 private volatile int state;
 ```
+
 类似银行办理业务的受理窗口状态
-* 零就是没人，自由状态可以办理
-* 大于等于1，有人占用窗口，等着去
-**AQS的CLH队列**
-`CLH`队列（三个大牛的名字组成），为一个**双向队列**，类似银行侯客区的等待顾客
-![aqs11.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d2d9210a57b54b31b1f8c2f1bc4bf4fb~tplv-k3u1fbpfcp-watermark.image?)
-**小结**
-* 有阻塞就需要排队，实现排队必然需要队列
-* state变量+CLH双端Node队列
-#### 内部类Node（Node类在AQS类内部）
-**Node的int变量**
-Node的等待状态waitState成员变量
+
+- 零就是没人，自由状态可以办理
+- 大于等于 1，有人占用窗口，等着去
+  **AQS 的 CLH 队列**
+  `CLH`队列（三个大牛的名字组成），为一个**双向队列**，类似银行侯客区的等待顾客
+  ![aqs11.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d2d9210a57b54b31b1f8c2f1bc4bf4fb~tplv-k3u1fbpfcp-watermark.image?)
+  **小结**
+- 有阻塞就需要排队，实现排队必然需要队列
+- state 变量+CLH 双端 Node 队列
+
+#### 内部类 Node（Node 类在 AQS 类内部）
+
+**Node 的 int 变量**
+Node 的等待状态 waitState 成员变量
+
 ```java
 /**
  * Status field, taking on only the values:
@@ -766,72 +857,88 @@ Node的等待状态waitState成员变量
  */
 volatile int waitStatus;
 ```
-类似等候区其它顾客(其它线程)的等待状态，队列中每个排队的个体就是一个Node.
-**Node此类的讲解**
+
+类似等候区其它顾客(其它线程)的等待状态，队列中每个排队的个体就是一个 Node.
+**Node 此类的讲解**
 内部结构+属性说明
+
 ```java
 static final class Node{
     //共享
     static final Node SHARED = new Node();
-    
+
     //独占
     static final Node EXCLUSIVE = null;
-    
+
     //线程被取消了
     static final int CANCELLED = 1;
-    
+
     //后继线程需要唤醒
     static final int SIGNAL = -1;
-    
+
     //等待condition唤醒
     static final int CONDITION = -2;
-    
+
     //共享式同步状态获取将会无条件地传播下去
     static final int PROPAGATE = -3;
-    
+
     // 初始为e，状态是上面的几种
     volatile int waitStatus;
-    
+
     // 前置节点
     volatile Node prev;
-    
+
     // 后继节点
     volatile Node next;
 
     // ...
-    
+
 ```
-### AQS同步队列的基本结构
+
+### AQS 同步队列的基本结构
 
 ![a1.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/030ea07b4de44cfcba0070790ba8c1cb~tplv-k3u1fbpfcp-watermark.image?)
-### AQS底层是怎么排队的？
+
+### AQS 底层是怎么排队的？
+
 是用`LockSupport.pork()`来进行排队的
-## 从我们的ReentrantLock开始解读AQS
+
+## 从我们的 ReentrantLock 开始解读 AQS
+
 `ReentrantLock` 类是`Lock`接口的实现类，基本都是通过【聚合】了一个【队列同步器】的子类完成线程访问控制的
-### ReentrantLock原理
+
+### ReentrantLock 原理
+
 `ReentrantLock` 实现了 Lock 接口，在 `ReentrantLock` 内部聚合了一个 `AbstractQueuedSynchronizer` 的实现类
 
 ![aqs12.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5ce65a5da0264f1099785300471e56d7~tplv-k3u1fbpfcp-watermark.image?)
-### 从最简单的lock方法开始看看公平和非公平
+
+### 从最简单的 lock 方法开始看看公平和非公平
+
 在 `ReentrantLock` 内定义了静态内部类，分别为 `NoFairSync`（非公平锁）和 `FairSync`（公平锁）
 
 ![aqs14.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d60a3b7a0f95496f9548523cccd7f56e~tplv-k3u1fbpfcp-watermark.image?)
-    `ReentrantLock` 的构造函数：不传参数表示创建非公平锁；参数为 true 表示创建公平锁；参数为 `false` 表示创建非公平锁
+`ReentrantLock` 的构造函数：不传参数表示创建非公平锁；参数为 true 表示创建公平锁；参数为 `false` 表示创建非公平锁
+
 ```
 public ReentrantLock(boolean fair) {
     sync = fair ? new FairSync() : new NonfairSync();
 }
 ```
+
 ![aqs13.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e97ac87a697c47f1bc71534b5e4df266~tplv-k3u1fbpfcp-watermark.image?)
-可以明显看出公平锁与非公平锁的lock()方法唯一的区别就在于公平锁在获取同步状态时多了一个限制条件:`hasQueuedPredecessors()`、`hasQueuedPredecessors`是公平锁加锁时判断等待队列中是否存在有效节点的方法
-对比公平锁和非公平锁的tryAcqure()方法的实现代码， 其实差别就在于非公平锁获取锁时比公平锁中少了一个判断!hasQueuedPredecessors()，hasQueuedPredecessors()中判断了是否需要排队，导致公平锁和非公平锁的差异如下:\
+可以明显看出公平锁与非公平锁的 lock()方法唯一的区别就在于公平锁在获取同步状态时多了一个限制条件:`hasQueuedPredecessors()`、`hasQueuedPredecessors`是公平锁加锁时判断等待队列中是否存在有效节点的方法
+对比公平锁和非公平锁的 tryAcqure()方法的实现代码， 其实差别就在于非公平锁获取锁时比公平锁中少了一个判断!hasQueuedPredecessors()，hasQueuedPredecessors()中判断了是否需要排队，导致公平锁和非公平锁的差异如下:\
+
 ### 公平锁与非公平锁区别
+
 公平锁：公平锁讲究先来先到，线程在获取锁时，如果这个锁的等待队列中已经有线程在等待，那么当前线程就会进入等待队列中；
 
-非公平锁：不管是否有等待队列，如果可以获取锁，则立刻占有锁对象。也就是说队列的第一 个排队线程在unpark()，之后还是需要竞争锁(存在线程竞争的情况下)
+非公平锁：不管是否有等待队列，如果可以获取锁，则立刻占有锁对象。也就是说队列的第一 个排队线程在 unpark()，之后还是需要竞争锁(存在线程竞争的情况下)
 
 ![aqs15.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ea1f5e62cf9f43b9955259e9ef5d0714~tplv-k3u1fbpfcp-watermark.image?)
-**我们以NonfairSync举例来看源码**
+**我们以 NonfairSync 举例来看源码**
+
 ```java
 ReentrantLock lock = new ReentrantLock(true);
 lock.lock();
@@ -842,8 +949,10 @@ public void lock() {
     sync.lock();
 }
 ```
+
 `Sync`是`ReentrantLock`一个静态内部类并继承`AbstractQueuedSynchronizer`,
 抽象方法`lock()`我们需要去子类看怎么实现
+
 ```java
 abstract static class Sync extends AbstractQueuedSynchronizer {
     private static final long serialVersionUID = -5179523762034025860L;
@@ -924,7 +1033,9 @@ abstract static class Sync extends AbstractQueuedSynchronizer {
     }
 }
 ```
+
 同样静态内部类`NonfairSync`又继承静态内部类`Sync`
+
 ```
 Class ReentrantLock：
     static final class NonfairSync extends Sync {
@@ -951,8 +1062,8 @@ Class ReentrantLock：
             return nonfairTryAcquire(acquires);
         }
     }
-    
-    
+
+
     final boolean nonfairTryAcquire(int acquires) {
         final Thread current = Thread.currentThread();
         int c = getState();
@@ -992,7 +1103,7 @@ public abstract class AbstractOwnableSynchronizer
     protected final void setExclusiveOwnerThread(Thread thread) {
         exclusiveOwnerThread = thread;
     }
-    
+
     // 返回当前受理窗口线程
     protected final Thread getExclusiveOwnerThread() {
         return exclusiveOwnerThread;
@@ -1004,7 +1115,7 @@ public abstract class AbstractOwnableSynchronizer
 ```java
 public abstract class AbstractQueuedSynchronizer
     extends AbstractOwnableSynchronizer implements java.io.Serializable {
-    
+
     // 还以银行案例，A 在办理，当前线程就为 B
     private Node addWaiter(Node mode) {
         // 当前顾客就去候客区入队
@@ -1042,7 +1153,7 @@ public abstract class AbstractQueuedSynchronizer
         }
     }
 
-    
+
     protected final void setState(int newState) {
         state = newState;
     }
@@ -1054,13 +1165,13 @@ public abstract class AbstractQueuedSynchronizer
             acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
             selfInterrupt();
     }
-    
+
     // 设计模式中模板方法，必须实现，要不就抛出异常，必须实现底层钩子程序
     protected boolean tryAcquire(int arg) {
         throw new UnsupportedOperationException();
     }
 
-    
+
     private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
         // 等待状态
         int ws = pred.waitStatus;
@@ -1092,7 +1203,7 @@ public abstract class AbstractQueuedSynchronizer
         return false;
     }
 
-    
+
     final boolean acquireQueued(final Node node, int arg) {
         // 若 failed 为false说明某个排队的人不想排了
         boolean failed = true;
@@ -1115,21 +1226,21 @@ public abstract class AbstractQueuedSynchronizer
                     // 检查是否被中断
                     parkAndCheckInterrupt())
                     interrupted = true;
-            } 
+            }
         } finally {
             if (failed)
                 cancelAcquire(node);
         }
     }
-    
-    
+
+
     private final boolean parkAndCheckInterrupt() {
         // B 这时候被阻塞
         LockSupport.park(this);
         return Thread.interrupted();
     }
 
-    
+
     final Node predecessor() throws NullPointerException {
         Node p = prev;
         if (p == null)
@@ -1142,6 +1253,7 @@ public abstract class AbstractQueuedSynchronizer
 ```
 
 #### 银行案例
+
 ```java
 public class AQSDemo {
     public static void main(String[] args) {
@@ -1184,6 +1296,7 @@ public class AQSDemo {
     }
 }
 ```
+
 **运行状态分析**
 
 ![a2.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/942ede142cb14fcdb744fc0c7df2ba42~tplv-k3u1fbpfcp-watermark.image?)
@@ -1215,7 +1328,9 @@ public final boolean release(int arg) {
     return false;
 }
 ```
-在 `release()` 方法中获取到的头结点 h 为哨兵节点，`h.waitStatus == -1`，因此执行 CAS操作将哨兵节点的 `waitStatus` 设置为 0，并将哨兵节点的下一个节点（`s = node.next = nodeB`）获取出来，并唤醒 nodeB 中封装的线程（`if (s == null || s.waitStatus > 0`) 不成立，只有 `if (s != null)` 成立）
+
+在 `release()` 方法中获取到的头结点 h 为哨兵节点，`h.waitStatus == -1`，因此执行 CAS 操作将哨兵节点的 `waitStatus` 设置为 0，并将哨兵节点的下一个节点（`s = node.next = nodeB`）获取出来，并唤醒 nodeB 中封装的线程（`if (s == null || s.waitStatus > 0`) 不成立，只有 `if (s != null)` 成立）
+
 ```java
 private void unparkSuccessor(Node node) {
     /*
@@ -1244,13 +1359,17 @@ private void unparkSuccessor(Node node) {
         LockSupport.unpark(s.thread);
 }
 ```
+
 执行完上述操作后，当前占用 lock 锁的线程为 `null`，哨兵节点的 `waitStatus` 设置为 0，`state` 的值为 0（表示当前没有任何线程占用 lock 锁）
+
 ```java
 protected boolean tryRelease(int arg) {
     throw new UnsupportedOperationException();
 }
 ```
+
 线程 A 只加锁过一次，因此 `state` 的值为 1，参数 `release` 的值也为 1，因此 `c == 0`。将 `free` 设置为 `true`，表示当前 lock 锁已被释放，将排他锁占有的线程设置为 `null`，表示没有任何线程占用 lock 锁
+
 ```java
 protected final boolean tryRelease(int releases) {
     int c = getState() - releases;
@@ -1272,20 +1391,21 @@ protected final boolean tryRelease(int releases) {
 杀个回马枪：继续来看 B 线程被唤醒之后的执行逻辑.回到上一层方法中，此时 lock 锁未被占用，线程 B 执行 `tryAcquire(arg)` 方法能够抢到 lock 锁，并且将 `state` 变量的值设置为 1，表示该 lock 锁已经被占用
 
 ### 总结
+
 #### 考点
-**我相信你应该看过源码了，那么AQS里面有个变量叫State，它的值有几种？**
 
-3个状态：没占用是0，占用了是1，大于1是可重入锁
+**我相信你应该看过源码了，那么 AQS 里面有个变量叫 State，它的值有几种？**
 
-**如果AB两个线程进来了以后，请问这个总共有多少个Node节点？**
+3 个状态：没占用是 0，占用了是 1，大于 1 是可重入锁
 
-3个，分别是哨兵节点、nodeA、nodeB
+**如果 AB 两个线程进来了以后，请问这个总共有多少个 Node 节点？**
+
+3 个，分别是哨兵节点、nodeA、nodeB
 
 #### 源码图解
 
 ![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8ee93a3090a248f7b53a72495a5857db~tplv-k3u1fbpfcp-watermark.image?)
 
 **附上一张全流程**
-
 
 ![ReentrantLock-AQS加锁过程.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d470d0ef50be49ca8c5d50f995f222af~tplv-k3u1fbpfcp-watermark.image?)

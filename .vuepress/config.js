@@ -10,9 +10,14 @@ export default defineUserConfig({
   title: book.title,
   description: book.description,
   base: '/gitbook/',
-  head: [],
+  head: [
+    [
+      'link', { rel: 'icon', href: '../img/favicon.ico' }
+    ]
+  ],
   theme: defaultTheme({
-    docsBranch: 'master',
+    docsBranch: 'main',
+    logo: '../img/favicon.ico',// 注意图片放在 public 文件夹下
     navbar: [
       {
         text: '我的博客',
@@ -34,6 +39,7 @@ export default defineUserConfig({
         'link': '/',
       },
       'interview_basic.md',
+      'AQS.md',
       'oop-design-pattern.md',
       'factory-pattern.md',
       'adapter-pattern.md',

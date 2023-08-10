@@ -1,22 +1,22 @@
 {
-  "name": "gitbook-design-patterns-in-jquery",
+  "name": "gitbook",
   "version": "1.0.0",
-  "description": "从 jQuery 里学习设计模式",
+  "description": "如何更充分的准备面试",
   "scripts": {
     "dev": "vuepress dev",
     "build": "vuepress build"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/meathill/gitbook.git"
+    "url": "git+https://github.com/weridor/gitbook"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/meathill/gitbook/issues"
+    "url": "https://github.com/weridor/gitbook/issues"
   },
-  "homepage": "https://meathill.com/gitbook-design-patterns-in-jquery/",
+  "homepage": "https://github.com/weridor/gitbook/",
   "devDependencies": {
     "@vuepress/plugin-google-analytics": "2.0.0-beta.53",
     "@vuepress/plugin-register-components": "2.0.0-beta.53",
